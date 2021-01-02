@@ -2,8 +2,10 @@ import React from 'react';
 import Navigation from './components/Navigation/Navigation';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import Rank from './components/Rank/Rank';
 import ImageRecognition from './components/ImageRecognition/ImageRecognition';
+import SignIn from './components/SignIn/SignIn';
+import Rank from './components/Rank/Rank';
+
 import './App.css';
 import Particles from 'react-particles-js';
 import Clarifai from 'clarifai';
@@ -16,45 +18,82 @@ class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      input: ''
+      input: '', 
+      imageUrl: '', 
+      box: {
+        top: '', 
+        right: '', 
+        bottom: '', 
+        left: ''
+      }, 
+      route: 'signin'
     }
   }
 
   onInputChange = (event) => {
-    console.log(event.target.value);
+    this.setState({input: event.target.value});
   }
 
   onButtonSubmit = (event) => {
-    console.log('click');
-    app.models.predict(Clarifai.CELEBRITY_MODEL, 
-    "https://samples.clarifai.com/face-det.jpg")
-    .then(function(response) {
+    this.setState({imageUrl: this.state.input});
+    app.models.predict(Clarifai.CELEBRITY_MODEL, this.state.input)
+    .then((response) => {
+
       console.log(response);
-    }, 
-      function(err) {
-        console.log('error in face detection API response');
-      });
+      console.log(response.outputs[0].data.regions[0].data.concepts[0].name);
+      console.log(response.outputs[0].data.regions[0].region_info.bounding_box);
+
+      this.displayObjectBox(this.calcObjectLocation(response));
+    }).catch((err) => {
+      console.log('error in face detection API response:', err);
+    });
+  }
+
+  calcObjectLocation = (data) => {
+    const boxData = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputimage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+
+    return {
+      top: boxData.top_row * height, 
+      right: width - (boxData.right_col * width), 
+      bottom: height - (boxData.bottom_row * height), 
+      left: boxData.left_col * width
+    }
+  }
+
+  displayObjectBox = (box) => {
+    console.log(box);
+    this.setState({box: box});
+  }
+
+  onRouteChange = () => {
+    this.setState({route: 'home'});
   }
 
   render() {
     return (
       <div className="App">
         <Navigation />
-        <Logo /> 
-        <Rank />
-        <ImageLinkForm 
-          onButtonSubmit={this.onButtonSubmit} 
-          onInputChange={this.onInputChange} 
-        />
-        <ImageRecognition />
+        { this.state.route === 'signin' 
+          ? <SignIn onRouteChange={this.onRouteChange}/> 
+          : <div>
+              <Logo /> 
+              <Rank />
+              <ImageLinkForm 
+                onButtonSubmit={this.onButtonSubmit} 
+                onInputChange={this.onInputChange} 
+              />
+              <ImageRecognition imageUrl={this.state.imageUrl} box={this.state.box} />
+            </div>
+        }
+
         <Particles className='particles' params={particlesOptions}/>
       </div>
     );
   }
 }
-
-export default App;
-
 
 const particlesOptions = {
   "particles": {
@@ -107,3 +146,5 @@ const particlesOptions = {
   },
   "retina_detect": true
 }
+
+export default App;
