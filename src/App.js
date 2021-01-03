@@ -27,7 +27,8 @@ class App extends React.Component {
         bottom: '', 
         left: ''
       }, 
-      route: 'signin'
+      route: 'signin', 
+      isSignedIn: false
     }
   }
 
@@ -70,6 +71,11 @@ class App extends React.Component {
   }
 
   onRouteChange = (route) => {
+    if (route === 'signin') {
+      this.setState({isSignedIn: false});
+    } else if (route === 'home') {
+      this.setState({isSignedIn: true});
+    }
     this.setState({route: route});
   }
 
@@ -78,7 +84,7 @@ class App extends React.Component {
       <div className="App">
         { this.state.route === 'home' 
           ? <div>
-            <Navigation onRouteChange={this.onRouteChange} />
+            <Navigation onRouteChange={this.onRouteChange} isSignedIn={this.state.isSignedIn} />
             <Logo /> 
             <Rank />
             <ImageLinkForm 
