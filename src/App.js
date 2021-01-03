@@ -3,6 +3,7 @@ import Navigation from './components/Navigation/Navigation';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import ImageRecognition from './components/ImageRecognition/ImageRecognition';
+import Register from './components/Register/Register';
 import SignIn from './components/SignIn/SignIn';
 import Rank from './components/Rank/Rank';
 
@@ -68,25 +69,29 @@ class App extends React.Component {
     this.setState({box: box});
   }
 
-  onRouteChange = () => {
-    this.setState({route: 'home'});
+  onRouteChange = (route) => {
+    this.setState({route: route});
   }
 
   render() {
     return (
       <div className="App">
-        <Navigation />
-        { this.state.route === 'signin' 
-          ? <SignIn onRouteChange={this.onRouteChange}/> 
-          : <div>
-              <Logo /> 
-              <Rank />
-              <ImageLinkForm 
-                onButtonSubmit={this.onButtonSubmit} 
-                onInputChange={this.onInputChange} 
-              />
-              <ImageRecognition imageUrl={this.state.imageUrl} box={this.state.box} />
-            </div>
+        { this.state.route === 'home' 
+          ? <div>
+            <Navigation onRouteChange={this.onRouteChange} />
+            <Logo /> 
+            <Rank />
+            <ImageLinkForm 
+              onButtonSubmit={this.onButtonSubmit} 
+              onInputChange={this.onInputChange} 
+            />
+            <ImageRecognition imageUrl={this.state.imageUrl} box={this.state.box} />
+          </div>
+          : (
+            this.state.route === 'signin' 
+            ? <SignIn onRouteChange={this.onRouteChange} /> 
+            : <Register onRouteChange={this.onRouteChange} />
+          )
         }
 
         <Particles className='particles' params={particlesOptions}/>
