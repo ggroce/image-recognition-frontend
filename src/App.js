@@ -7,39 +7,79 @@ import Register from './components/Register/Register';
 import SignIn from './components/SignIn/SignIn';
 import Rank from './components/Rank/Rank';
 
-import './App.css';
+import particlesOptions from './particlesOptions';
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai';
 
+import './App.css';
+
+import Clarifai from 'clarifai';
 const app = new Clarifai.App({
  apiKey: '2991e271c82245929ad853bbd5de68c9'
 });
 
+const initialState = {
+  input: '', 
+  imageUrl: '', 
+  box: {
+    top: '', 
+    right: '', 
+    bottom: '', 
+    left: ''
+  }, 
+  route: 'signin', 
+  isSignedIn: false,
+  user : {
+    id: '', 
+    name: '', 
+    email: '', 
+    entries: 0, 
+    joined: ''
+  }
+}
+
 class App extends React.Component {
   constructor() {
     super();
-    this.state = {
-      input: '', 
-      imageUrl: '', 
-      box: {
-        top: '', 
-        right: '', 
-        bottom: '', 
-        left: ''
-      }, 
-      route: 'signin', 
-      isSignedIn: false
-    }
+    this.state = initialState;
+  }
+
+  loadUser = (data) => {
+    this.setState({user : {
+      id: data.id, 
+      name: data.name, 
+      email: data.name, 
+      entries: data.entries, 
+      joined: data.joined
+    }})
   }
 
   onInputChange = (event) => {
     this.setState({input: event.target.value});
   }
 
-  onButtonSubmit = (event) => {
+  onImageSubmit = (event) => {
     this.setState({imageUrl: this.state.input});
     app.models.predict(Clarifai.CELEBRITY_MODEL, this.state.input)
     .then((response) => {
+      if(response) {
+        fetch('http://localhost:3000/image', {
+          method: 'put', 
+          headers: {'Content-Type': 'Application/json'}, 
+          body: JSON.stringify({
+            id: this.state.user.id
+          })
+        })
+        .then(response => response.json())
+        .then(response => {
+          if (response !== 'invalid ID') {
+            this.setState(
+              Object.assign(this.state.user, {entries: response})
+            );
+          }
+        })
+        .catch(console.log);
+      }
+      
 
       console.log(response);
       console.log(response.outputs[0].data.regions[0].data.concepts[0].name);
@@ -72,7 +112,7 @@ class App extends React.Component {
 
   onRouteChange = (route) => {
     if (route === 'signin') {
-      this.setState({isSignedIn: false});
+      this.setState(initialState);
     } else if (route === 'home') {
       this.setState({isSignedIn: true});
     }
@@ -82,21 +122,21 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
-        { this.state.route === 'home' 
-          ? <div>
+        { 
+        this.state.route === 'home' ? 
+          <div>
+            <Logo />
+            <Rank name={this.state.user.name} entries={this.state.user.entries}/>
             <Navigation onRouteChange={this.onRouteChange} isSignedIn={this.state.isSignedIn} />
-            <Logo /> 
-            <Rank />
             <ImageLinkForm 
-              onButtonSubmit={this.onButtonSubmit} 
+              onImageSubmit={this.onImageSubmit} 
               onInputChange={this.onInputChange} 
             />
             <ImageRecognition imageUrl={this.state.imageUrl} box={this.state.box} />
           </div>
-          : (
-            this.state.route === 'signin' 
-            ? <SignIn onRouteChange={this.onRouteChange} /> 
-            : <Register onRouteChange={this.onRouteChange} />
+          : (this.state.route === 'signin' ? 
+            <SignIn onRouteChange={this.onRouteChange} loadUser={this.loadUser} /> 
+            : <Register onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
           )
         }
 
@@ -104,58 +144,6 @@ class App extends React.Component {
       </div>
     );
   }
-}
-
-const particlesOptions = {
-  "particles": {
-      "number": {
-          "value": 60,
-          "density": {
-              "enable": true,
-              "value_area": 1200
-          }
-      },
-      "line_linked": {
-          "enable": true,
-          "opacity": 0.03
-      },
-      "move": {
-          "direction": "right",
-          "speed": 0.06
-      },
-      "size": {
-          "value": 1
-      },
-      "opacity": {
-          "anim": {
-              "enable": true,
-              "speed": 2,
-              "opacity_min": 0.05
-          }
-      }
-  },
-  "interactivity": {
-      "events": {
-          "onclick": {
-              "enable": true,
-              "mode": "push"
-          }, 
-          "onhover": {
-            "enable": true,
-            "mode": "bubble"
-        }
-      },
-      "modes": {
-          "push": {
-              "particles_nb": 1
-          }, 
-          "bubble": {
-            "size": 4,
-            "distance": 40
-        }
-      }
-  },
-  "retina_detect": true
 }
 
 export default App;
