@@ -7,15 +7,14 @@ import Register from './components/Register/Register';
 import SignIn from './components/SignIn/SignIn';
 import Rank from './components/Rank/Rank';
 
-import particlesOptions from './particlesOptions';
+import ParticlesOptions from './ParticlesOptions';
 import Particles from 'react-particles-js';
 
 import './App.css';
 
 import Clarifai from 'clarifai';
-const app = new Clarifai.App({
- apiKey: '2991e271c82245929ad853bbd5de68c9'
-});
+import ClarafaiAPIKey from './ClarafaiAPIKey';
+const app = new Clarifai.App(ClarafaiAPIKey);
 
 const initialState = {
   input: '', 
@@ -126,7 +125,7 @@ class App extends React.Component {
         this.state.route === 'home' ? 
           <div>
             <Logo />
-            <Rank name={this.state.user.name} entries={this.state.user.entries}/>
+            <Rank name={this.state.user.name} entries={this.state.user.entries} />
             <Navigation onRouteChange={this.onRouteChange} isSignedIn={this.state.isSignedIn} />
             <ImageLinkForm 
               onImageSubmit={this.onImageSubmit} 
@@ -140,7 +139,7 @@ class App extends React.Component {
           )
         }
 
-        <Particles className='particles' params={particlesOptions}/>
+        <Particles className='particles' params={ParticlesOptions}/>
       </div>
     );
   }
