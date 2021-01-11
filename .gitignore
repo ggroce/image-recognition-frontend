@@ -20,6 +20,8 @@
 
 # addedbyme
 package-lock.json
+.eslintcache
+ClarafaiAPIKey.js
 
 npm-debug.log*
 yarn-debug.log*

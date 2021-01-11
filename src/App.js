@@ -1,6 +1,5 @@
 import React from 'react';
 import Navigation from './components/Navigation/Navigation';
-import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import ImageRecognition from './components/ImageRecognition/ImageRecognition';
 import Register from './components/Register/Register';
@@ -11,10 +10,6 @@ import ParticlesOptions from './ParticlesOptions';
 import Particles from 'react-particles-js';
 
 import './App.css';
-
-import Clarifai from 'clarifai';
-import ClarafaiAPIKey from './ClarafaiAPIKey';
-const app = new Clarifai.App(ClarafaiAPIKey);
 
 const initialState = {
   input: '', 
@@ -58,7 +53,12 @@ class App extends React.Component {
 
   onImageSubmit = (event) => {
     this.setState({imageUrl: this.state.input});
-    app.models.predict(Clarifai.CELEBRITY_MODEL, this.state.input)
+    fetch('http://localhost:3000/imageurl', {
+      method: 'post', 
+      headers: {'Content-Type': 'Application/json'}, 
+      body: JSON.stringify({input: this.state.input})
+    })
+    .then(response => response.json())
     .then((response) => {
       if(response) {
         fetch('http://localhost:3000/image', {
@@ -71,9 +71,7 @@ class App extends React.Component {
         .then(response => response.json())
         .then(response => {
           if (response !== 'invalid ID') {
-            this.setState(
-              Object.assign(this.state.user, {entries: response})
-            );
+            this.setState(Object.assign(this.state.user, {entries: response}));
           }
         })
         .catch(console.log);
@@ -124,9 +122,10 @@ class App extends React.Component {
         { 
         this.state.route === 'home' ? 
           <div>
-            <Logo />
-            <Rank name={this.state.user.name} entries={this.state.user.entries} />
+            <header>
             <Navigation onRouteChange={this.onRouteChange} isSignedIn={this.state.isSignedIn} />
+            </header>
+            <Rank name={this.state.user.name} entries={this.state.user.entries} />
             <ImageLinkForm 
               onImageSubmit={this.onImageSubmit} 
               onInputChange={this.onInputChange} 
