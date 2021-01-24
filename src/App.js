@@ -53,7 +53,7 @@ class App extends React.Component {
 
   onImageSubmit = (event) => {
     this.setState({imageUrl: this.state.input});
-    fetch('https://rocky-dusk-77911.herokuapp.com/imageurl', {
+    fetch('https://localhost:3001/imageurl', {
       method: 'post', 
       headers: {'Content-Type': 'Application/json'}, 
       body: JSON.stringify({input: this.state.input})
@@ -61,7 +61,7 @@ class App extends React.Component {
     .then(response => response.json())
     .then((response) => {
       if(response) {
-        fetch('https://rocky-dusk-77911.herokuapp.com/image', {
+        fetch('https://localhost:3001/image', {
           method: 'put', 
           headers: {'Content-Type': 'Application/json'}, 
           body: JSON.stringify({
